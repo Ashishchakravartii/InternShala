@@ -1,5 +1,7 @@
 const { catchAsynErrors } = require("../middlewares/catchAsynErrors");
 const Student = require("../models/studentModel");
+const Internship = require("../models/internshipModel");
+const Job = require("../models/jobModel");
 const ErrorHandler = require("../utils/ErrorHandler");
 const { sendtoken } = require("../utils/SendToken");
 const { sendmail } = require("../utils/sendMail");
@@ -92,6 +94,14 @@ exports.studentupdate = catchAsynErrors(async (req, res, next) => {
   });
 });
 
+exports.studentdelete = catchAsynErrors(async (req, res, next) => {
+  await Student.findByIdAndDelete(req.params.id).exec();
+  res.status(200).json({
+    success: true,
+    message: "Student Deleted Successfully!",
+  });
+});
+
 exports.studentavatar = catchAsynErrors(async (req, res, next) => {
   const student = await Student.findById(req.params.id).exec();
   const file = req.files.avatar;
@@ -116,4 +126,36 @@ res.status(200).json({
 });
 
 
+});
+
+// ---------------------- apply internship ------------
+
+exports.applyinternship = catchAsynErrors(async (req, res, next) => {
+  const student = await Student.findById(req.id).exec();
+  const internship = await Internship.findById(req.params.internshipid).exec();
+
+  student.internships.push(internship._id);
+  internship.students.push(student._id);
+  await student.save();
+  await internship.save();
+
+
+  res.json({ student, internship  });
+});
+
+
+
+// ---------------------- apply job -----------------------
+
+exports.applyjob = catchAsynErrors(async (req, res, next) => {
+  const student = await Student.findById(req.id).exec();
+  const job = await Job.findById(req.params.jobid).exec();
+
+  student.jobs.push(job._id);
+  job.students.push(student._id);
+  await student.save();
+  await job.save();
+
+
+  res.json({ student });
 });
